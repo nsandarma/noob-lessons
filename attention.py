@@ -21,11 +21,14 @@ vector_size = 5
 embed = np.random.randn(vocab_size, vector_size)
 vectors = np.array([embed[idx].tolist() for idx in data_indices])
 
-n = 5
 # Bobot query,key dan value
+n = 5
 query = np.random.randn(vector_size, n)
 key = np.random.randn(vector_size, n)
 value = np.random.randn(vector_size, n)
+
+# masked attention -> decoder
+mask = np.triu(np.ones((vocab_size, vocab_size)) * -np.inf, 1)  # (seq_length,seq_length)
 
 # (n_vectors,n)
 vq = vectors @ query
@@ -33,20 +36,24 @@ vk = vectors @ key
 vv = vectors @ value
 
 
-def scaled_dot_product(q, k, v):
+def scaled_dot_product(q, k, v, mask):
     attn_logits = q @ k.T
     attn_logits = attn_logits / np.sqrt(n)
+    if mask is not None:
+        attn_logits = attn_logits + mask
+
     attention = np.exp(attn_logits) / np.sum(
         np.exp(attn_logits), axis=-1, keepdims=True
     )  # softmax
+
     values = attention @ v
     return values, attention
 
 
-output, attention = scaled_dot_product(vq, vk, vv)
+output, attention = scaled_dot_product(vq, vk, vv, mask)
 print(f"output : \n{output}")
 print(f"attention : \n{attention}")
 
 """
-embedding, dan bobot (query,key,value) yang akan dicari oleh ketika training
+embedding, dan bobot (query,key,value) akan di update selama proses training
 """
