@@ -4,7 +4,7 @@
 import numpy as np
 
 text = "indonesia adalah surga"
-
+np.random.seed(42)
 token = text.split()
 vocab_size = len(token)
 vocab = sorted(set(token))
@@ -27,25 +27,26 @@ query = np.random.randn(vector_size, n)
 key = np.random.randn(vector_size, n)
 value = np.random.randn(vector_size, n)
 
-# (3,5) * (5,2)
-
+# (n_vectors,n)
 vq = vectors @ query
 vk = vectors @ key
 vv = vectors @ value
 
-result = []
 
-for q in vq:
-    v = []
-    for i, k in enumerate(vk):
-        r = q.dot(k) / np.sqrt(n)
-        v.append(r)
+def scaled_dot_product(q, k, v):
+    attn_logits = q @ k.T
+    attn_logits = attn_logits / np.sqrt(n)
+    attention = np.exp(attn_logits) / np.sum(
+        np.exp(attn_logits), axis=-1, keepdims=True
+    )  # softmax
+    values = attention @ v
+    return values, attention
 
-    attention_weights = np.exp(v) / np.sum(np.exp(v), axis=0)
-    attention_outputs = np.matmul(attention_weights, vv)
-    result.append(attention_outputs)
 
-result = np.array(result)
+output, attention = scaled_dot_product(vq, vk, vv)
+print(f"output : \n{output}")
+print(f"attention : \n{attention}")
 
-print(f"vectors (embed): \n{vectors}")
-print(f"vectors + context(attention): \n{result}")
+"""
+embedding, dan bobot (query,key,value) yang akan dicari oleh ketika training
+"""
