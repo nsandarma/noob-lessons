@@ -15,13 +15,15 @@ encode = lambda x: [word_to_idx[word] for word in x]
 
 tokens = encode(text.split())
 
-embed_size = 6
+embed_size = 3
 
 embed = np.random.rand(len(vocab) + 1, embed_size)
 
 vectors = np.array([embed[idx] for idx in tokens])
 
+# Ada dua jenis fungsi yang umum digunakan dalam positional encoding :
 
+# 1. Sine and Cosine Functions
 def getPositionEncoding(seq_len, d, n=10000):
     P = np.zeros((seq_len, d))
     for k in range(seq_len):
@@ -31,8 +33,18 @@ def getPositionEncoding(seq_len, d, n=10000):
             P[k, 2 * i + 1] = np.cos(k / denominator)
     return P
 
+# 2. Learnable Positional Encoding :
+# positional encoding juga bisa dipelajari langsung oleh model selama proses pelatihan.
+# Dalam metode ini, vektor posisi diperlakukan sebagai parameter yang dioptimalkan selama pelatihan model, mirip dengan cara embedding kata dioptimalkan.
 
-vectors = vectors + getPositionEncoding(
-    seq_len=vectors.shape[0], d=vectors.shape[1]
-)  # vectors with positional encoding
-print(vectors)
+def getPositionEncoding2(seq_len,d):
+  pos_encoding = np.random.rand(seq_len, d)
+  positions = np.arange(0,seq_len)
+  return [pos_encoding[idx] for idx in positions]
+
+print(f"sequences :\n{tokens}\n")
+print(f"word embed : \n{vectors}\n")
+sine_cosine = vectors + getPositionEncoding(vectors.shape[0],vectors.shape[1])
+print(f"word embed + positional (sine and cosine) : \n{sine_cosine}\n")
+learnable = vectors + getPositionEncoding2(vectors.shape[0],vectors.shape[1])
+print(f"word embed + positional (learnable): \n{learnable}\n")
